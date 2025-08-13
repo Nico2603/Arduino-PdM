@@ -344,6 +344,27 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     Serial.println("🔄 Comando de reinicio recibido");
     delay(1000);
     ESP.restart();
+  } else if (message == "status") {
+    // Publicar estado del dispositivo
+    DynamicJsonDocument statusDoc(256);
+    statusDoc["sensor_id"] = sensorId;
+    statusDoc["uptime_ms"] = millis();
+    statusDoc["wifi_connected"] = (WiFi.status() == WL_CONNECTED);
+    if (WiFi.status() == WL_CONNECTED) {
+      statusDoc["rssi"] = WiFi.RSSI();
+      statusDoc["ip"] = WiFi.localIP().toString();
+    }
+    statusDoc["mqtt_connected"] = mqttClient.connected();
+    statusDoc["offline_count"] = offlineDataCount;
+    statusDoc["spiffs"] = spiffsInitialized;
+    statusDoc["watchdog_enabled"] = enableWatchdog;
+    
+    String statusJson;
+    serializeJson(statusDoc, statusJson);
+    String statusTopic = String("GL_Ingenieros/status/") + String(sensorId);
+    mqttClient.publish(statusTopic.c_str(), statusJson.c_str());
+    Serial.print("📤 Estado publicado en: ");
+    Serial.println(statusTopic);
   }
 }
 

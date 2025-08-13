@@ -31,10 +31,10 @@ GPIO22   <-->    SCL
 
 ## 🚀 Configuración Rápida
 
-### 1. Verificar configuración:
-```bash
-python check_esp32_setup.py
-```
+### 1. Verificar configuración básica del entorno:
+- Arduino IDE instalado (2.x recomendado)
+- ESP32 Arduino Core v2.0.2+ o v3.x
+- Librerías instaladas (ver siguiente paso)
 
 ### 2. Instalar librerías:
 ```
@@ -54,8 +54,8 @@ Herramientas → Placa → ESP32 Dev Module
 - Upload Speed: 921600
 ```
 
-### 4. Configurar WiFi:
-Editar `credentials.h`:
+### 4. Configurar WiFi y MQTT:
+Copiar `credentials_example.h` como `credentials.h` y editar:
 ```cpp
 const char* ssid = "TU_WIFI";
 const char* password = "TU_PASSWORD";
@@ -108,19 +108,32 @@ error: invalid conversion from 'int' to 'const esp_task_wdt_config_t*'
 - **Monitor Serial:** 115200 baudios
 - **Datos cada:** 10 segundos (configurable)
 - **Almacenamiento offline:** Hasta 50 registros
-- **Watchdog:** Reset automático en 60 segundos
+- **Watchdog:** Opcional (desactivado por defecto). Si se habilita (`enableWatchdog = true`), timeout 60s
 
 ## 🔄 Comandos MQTT
 
-**Tópico:** `GL_Ingenieros/sensores/comandos/[sensor_id]`
+**Tópico de comandos:** `GL_Ingenieros/sensores/comandos/[sensor_id]`
 
 Comandos disponibles:
 - `restart` - Reinicia el ESP32
-- `status` - Solicita estado del sensor
+- `status` - Publica estado en `GL_Ingenieros/status/[sensor_id]` con JSON:
+  ```json
+  {
+    "sensor_id": 1,
+    "uptime_ms": 123456,
+    "wifi_connected": true,
+    "rssi": -62,
+    "ip": "192.168.1.50",
+    "mqtt_connected": true,
+    "offline_count": 0,
+    "spiffs": true,
+    "watchdog_enabled": false
+  }
+  ```
 
 ## ⚡ Prueba Rápida
 
-1. **Sube el sketch de prueba:** `ESP32_Test.ino` (generado por `check_esp32_setup.py`)
+1. **Sube el sketch de prueba:** `ESP32_Test.ino` (incluido en esta carpeta)
 2. **Verifica funcionamiento** en Monitor Serial
 3. **Sube código principal:** `ESP32_Sensor.ino`
 4. **Monitorea datos** en el cliente MQTT
@@ -128,7 +141,7 @@ Comandos disponibles:
 ## 🆘 Soporte
 
 Si tienes problemas:
-1. ✅ Ejecuta `python check_esp32_setup.py`
+1. ✅ Verifica librerías instaladas y versión de ESP32 Core
 2. ✅ Sube `ESP32_Test.ino` para prueba básica
 3. ✅ Verifica conexiones de hardware
 4. ✅ Revisa logs en Monitor Serial (115200 baudios)
