@@ -4,7 +4,6 @@
 - WiFi
 - Wire
 - SPIFFS (Sistema de archivos)
-- esp_task_wdt (Watchdog Timer)
 
 # CAMBIO: Reemplazar HTTPClient con PubSubClient para MQTT
 # Instalar desde el Gestor de Bibliotecas de Arduino IDE
@@ -30,10 +29,5 @@
 - El código es compatible con ambas versiones mediante compilación condicional
 
 # Versiones de ESP32 Core soportadas:
-- v2.0.2 - v2.0.17 (IDF 4.x) - API Watchdog antigua
-- v3.0.0+ (IDF 5.x) - API Watchdog nueva
-
-# Si tienes errores de compilación del Watchdog:
-1. Verifica tu versión: Herramientas → Placa → Gestor de Tarjetas → ESP32
-2. Actualiza a v3.x para mejor rendimiento
-3. O usa v2.0.17 si prefieres estabilidad 
+- v2.0.2 - v2.0.17 (IDF 4.x)
+- v3.0.0+ (IDF 5.x)

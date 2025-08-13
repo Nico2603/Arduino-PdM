@@ -11,7 +11,6 @@
 #include <ArduinoJson.h>
 #include <time.h>               // Para NTP
 #include <SPIFFS.h>             // NUEVO: Almacenamiento local
-#include <esp_task_wdt.h>       // NUEVO: Watchdog Timer
 #include "credentials.h"
 
 // Configuración del sensor
@@ -30,19 +29,9 @@ const int   daylightOffset_sec = 0;  // Sin horario de verano
 // Variables globales
 unsigned long lastSendTime = 0;
 unsigned long lastWifiCheckTime = 0;
-unsigned long lastWatchdogTime = 0;       // NUEVO: Control Watchdog
 const int wifiCheckInterval = 30000;      // Revisar WiFi cada 30 segundos
-const int watchdogTimeout = 60000;        // NUEVO: Timeout Watchdog 60 segundos
 bool timeInitialized = false;
 bool spiffsInitialized = false;           // NUEVO: Estado SPIFFS
-
-// OPCIÓN: Desactivar watchdog si causa problemas (cambiar a false para desactivar)
-const bool enableWatchdog = false;
-
-// NUEVO: Handle para Watchdog Timer en ESP32 Core v3.x
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-esp_task_wdt_user_handle_t wdt_user_handle = NULL;
-#endif
 
 // NUEVO: Cola de datos offline
 const int maxOfflineData = 50;            // Máximo 50 registros offline
@@ -54,31 +43,8 @@ void setup() {
   delay(100);
   
   Serial.println("\n===== INICIALIZANDO ESP32 SENSOR =====");
-  Serial.println("Versión: 2.0.0 - PdM-Manager MQTT+SPIFFS+Watchdog");
+  Serial.println("Versión: 2.0.0 - PdM-Manager MQTT+SPIFFS");
   Serial.println("Desarrollado para monitoreo de vibraciones - GL Ingenieros");
-  
-  // NUEVO: Inicializar Watchdog Timer (compatible con ESP32 Core v2.x y v3.x)
-  if (enableWatchdog) {
-    Serial.println("Configurando Watchdog Timer...");
-    
-    #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-      // ESP32 Arduino Core v3.x (IDF 5.x) - Nueva API
-      esp_task_wdt_config_t wdt_config = {
-        .timeout_ms = watchdogTimeout,    // 60000 ms = 60 segundos
-        .idle_core_mask = 0,              // No monitorear tareas idle (causa problemas)
-        .trigger_panic = true             // Resetear automáticamente en timeout
-      };
-      esp_task_wdt_init(&wdt_config);     // Inicializar con nueva API
-      esp_task_wdt_add_user("ESP32_Sensor", &wdt_user_handle);  // Crear handle de usuario
-    #else
-      // ESP32 Arduino Core v2.x (IDF 4.x) - API antigua
-      esp_task_wdt_init(watchdogTimeout / 1000, true);  // 60 segundos, reset automático
-      esp_task_wdt_add(NULL);             // Agregar tarea actual al watchdog
-    #endif
-    Serial.println("✓ Watchdog Timer configurado (60s timeout)");
-  } else {
-    Serial.println("⚠️ Watchdog Timer DESACTIVADO (enableWatchdog = false)");
-  }
   
   // NUEVO: Inicializar SPIFFS para almacenamiento local
   if (!initializeSPIFFS()) {
@@ -130,20 +96,7 @@ void setup() {
 void loop() {
   unsigned long currentTime = millis();
   
-  // NUEVO: Alimentar Watchdog Timer (solo si está habilitado)
-  if (enableWatchdog && currentTime - lastWatchdogTime >= 30000) {  // Cada 30 segundos
-    #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-      // ESP32 Core v3.x - Nueva API
-      if (wdt_user_handle != NULL) {
-        esp_task_wdt_reset_user(wdt_user_handle);
-      }
-    #else
-      // ESP32 Core v2.x - API antigua
-      esp_task_wdt_reset();
-    #endif
-    lastWatchdogTime = currentTime;
-    Serial.println("🐕 Watchdog alimentado");
-  }
+  // (sin Watchdog)
   
   // Verificar si la conexión WiFi sigue activa
   if (WiFi.status() != WL_CONNECTED) {
@@ -357,8 +310,6 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     statusDoc["mqtt_connected"] = mqttClient.connected();
     statusDoc["offline_count"] = offlineDataCount;
     statusDoc["spiffs"] = spiffsInitialized;
-    statusDoc["watchdog_enabled"] = enableWatchdog;
-    
     String statusJson;
     serializeJson(statusDoc, statusJson);
     String statusTopic = String("GL_Ingenieros/status/") + String(sensorId);

@@ -6,7 +6,6 @@ Sistema de monitoreo de vibraciones con ESP32, sensor MPU6050 y comunicación MQ
 
 - ✅ **Comunicación MQTT** - Envío de datos en tiempo real
 - ✅ **Almacenamiento offline** - SPIFFS para datos sin conexión
-- ✅ **Watchdog Timer** - Auto-reinicio en caso de fallos
 - ✅ **Sincronización NTP** - Timestamps precisos
 - ✅ **WiFi robusto** - Reconexión automática
 - ✅ **Comandos remotos** - Control vía MQTT
@@ -79,14 +78,7 @@ const int sensorId = 1;  // Cambiar para múltiples sensores
 
 ## 🚨 Solución de Problemas
 
-### Error de compilación Watchdog:
-```
-error: invalid conversion from 'int' to 'const esp_task_wdt_config_t*'
-```
-**Solución:** ✅ El código ya es compatible con ambas versiones
-- Verifica versión ESP32 Core: `Herramientas → Placa → Gestor de Tarjetas`
-- Actualiza a v3.x para mejor rendimiento
-- O usa v2.0.17 para estabilidad
+ 
 
 ### Sensor no detectado:
 - ✅ Verificar conexiones I2C
@@ -108,7 +100,7 @@ error: invalid conversion from 'int' to 'const esp_task_wdt_config_t*'
 - **Monitor Serial:** 115200 baudios
 - **Datos cada:** 10 segundos (configurable)
 - **Almacenamiento offline:** Hasta 50 registros
-- **Watchdog:** Opcional (desactivado por defecto). Si se habilita (`enableWatchdog = true`), timeout 60s
+ 
 
 ## 🔄 Comandos MQTT
 
@@ -126,8 +118,7 @@ Comandos disponibles:
     "ip": "192.168.1.50",
     "mqtt_connected": true,
     "offline_count": 0,
-    "spiffs": true,
-    "watchdog_enabled": false
+    "spiffs": true
   }
   ```
 
