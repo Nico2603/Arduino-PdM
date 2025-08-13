@@ -124,18 +124,16 @@ Comandos disponibles:
 
 ## ⚡ Prueba Rápida
 
-1. **Sube el sketch de prueba:** `ESP32_Test.ino` (incluido en esta carpeta)
-2. **Verifica funcionamiento** en Monitor Serial
-3. **Sube código principal:** `ESP32_Sensor.ino`
-4. **Monitorea datos** en el cliente MQTT
+1. **Verifica funcionamiento** en Monitor Serial
+2. **Sube código principal:** `ESP32_Sensor.ino`
+3. **Monitorea datos** en el cliente MQTT
 
 ## 🆘 Soporte
 
 Si tienes problemas:
 1. ✅ Verifica librerías instaladas y versión de ESP32 Core
-2. ✅ Sube `ESP32_Test.ino` para prueba básica
-3. ✅ Verifica conexiones de hardware
-4. ✅ Revisa logs en Monitor Serial (115200 baudios)
+2. ✅ Verifica conexiones de hardware
+3. ✅ Revisa logs en Monitor Serial (115200 baudios)
 
 ---
 
