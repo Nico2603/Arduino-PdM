@@ -1,0 +1,17 @@
+[Unit]
+Description=MQTT Ingestor (MQTT -> PostgreSQL)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# CAMBIAR esta ruta absoluta al repositorio
+WorkingDirectory=/opt/Arduino-PdM/mqtt_ingestor
+ExecStart=/opt/Arduino-PdM/mqtt_ingestor/venv/bin/python3 /opt/Arduino-PdM/mqtt_ingestor/main.py
+EnvironmentFile=/opt/Arduino-PdM/mqtt_ingestor/.env
+Restart=always
+RestartSec=5
+User=%i
+
+[Install]
+WantedBy=multi-user.target

@@ -9,4 +9,5 @@ __pycache__/
 *.ota
 *.bin
 *.elf
+mqtt_ingestor/.env
 
