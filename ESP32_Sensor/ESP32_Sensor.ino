@@ -120,11 +120,11 @@ void loop() {
     mpu.getEvent(&accel, &gyro, &temp);
     
     // Obtener el timestamp actual en ISO8601
-    char timestamp[25];
+    char timestamp[32];  // Aumentado de 25 a 32 para evitar overflow
     getISOTimestamp(timestamp);
     
     // Crear JSON con los datos
-    DynamicJsonDocument jsonDoc(256);
+    DynamicJsonDocument jsonDoc(512);  // Aumentado de 256 a 512 para evitar overflow
     
     // Usar el ID del sensor como un número entero (importante para la API)
     jsonDoc["sensor_id"] = sensorId;
@@ -299,7 +299,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     ESP.restart();
   } else if (message == "status") {
     // Publicar estado del dispositivo
-    DynamicJsonDocument statusDoc(256);
+    DynamicJsonDocument statusDoc(512);  // Aumentado de 256 a 512 para evitar overflow
     statusDoc["sensor_id"] = sensorId;
     statusDoc["uptime_ms"] = millis();
     statusDoc["wifi_connected"] = (WiFi.status() == WL_CONNECTED);
@@ -322,45 +322,72 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 void initializeTime() {
   timeInitialized = false;
   Serial.println("Inicializando servidor NTP...");
+  Serial.println("Configuración: UTC-5 (Colombia), Servidor: pool.ntp.org");
   
-  // Intentar obtener la hora hasta 5 veces
+  // Intentar obtener la hora hasta 10 veces con más tiempo
   int retries = 0;
-  while (!timeInitialized && retries < 5) {
+  while (!timeInitialized && retries < 10) {
+    Serial.print("Intento NTP ");
+    Serial.print(retries + 1);
+    Serial.print("/10... ");
+    
     struct tm timeinfo;
     if(getLocalTime(&timeinfo)) {
-      Serial.println("Hora obtenida del servidor NTP:");
-      Serial.println(&timeinfo, "%Y-%m-%d %H:%M:%S");
-      timeInitialized = true;
+      Serial.println("✓ Hora obtenida del servidor NTP:");
+      Serial.print("Fecha/Hora actual: ");
+      Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+      
+      // Verificar que la fecha sea razonable (año 2025)
+      if (timeinfo.tm_year + 1900 >= 2025) {
+        timeInitialized = true;
+        Serial.println("✓ Sincronización NTP exitosa con fecha válida");
+      } else {
+        Serial.print("⚠️ Fecha obtenida parece incorrecta: ");
+        Serial.println(timeinfo.tm_year + 1900);
+      }
     } else {
-      Serial.println("Error al obtener la hora, reintentando...");
-      delay(1000);
+      Serial.println("✗ Error al obtener la hora");
+      delay(2000);  // Esperar más tiempo entre intentos
       retries++;
     }
   }
   
   if (!timeInitialized) {
-    Serial.println("No se pudo sincronizar con el servidor NTP");
-    Serial.println("Se usarán timestamps relativos");
+    Serial.println("⚠️ No se pudo sincronizar con el servidor NTP");
+    Serial.println("⚠️ Se intentará usar fecha del sistema local del ESP32");
+    Serial.println("⚠️ Si falla, se usará fallback: 2000-01-01T00:00:00");
+    Serial.println("⚠️ Verifique la conexión a Internet para obtener hora exacta");
   }
 }
 
 // Función para generar un timestamp ISO8601
 void getISOTimestamp(char* buffer) {
+  // PRIMER INTENTO: Usar NTP si está inicializado
   if (timeInitialized) {
-    // Obtener la hora actual del sistema NTP
     struct tm timeinfo;
     if (getLocalTime(&timeinfo)) {
-      // Formato: "2023-04-05T12:34:56Z"
-      sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02dZ", 
+      // Formato ISO8601 con zona horaria de Colombia (UTC-5)
+      sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02d-05:00", 
               timeinfo.tm_year + 1900, timeinfo.tm_mon + 1, timeinfo.tm_mday,
               timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
       return;
     }
   }
   
-  // Fallback en caso de error: usar un timestamp relativo al millis()
+  // SEGUNDO INTENTO: Usar fecha del sistema local del ESP32
   time_t now = time(nullptr);
-  sprintf(buffer, "2023-04-05T12:%02d:%02dZ", (now / 60) % 60, now % 60);
+  if (now > 946684800) { // Timestamp para 1 enero 2000 00:00:00 UTC (946684800)
+    struct tm *timeinfo = localtime(&now);
+    if (timeinfo != nullptr) {
+      sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02d-05:00", 
+              timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, timeinfo->tm_mday,
+              timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+      return;
+    }
+  }
+  
+  // FALLBACK FINAL: Fecha estándar - 1 enero 2000 a las 00:00:00
+  sprintf(buffer, "2000-01-01T00:00:00-05:00");
 }
 
 // NUEVO: Función para inicializar SPIFFS

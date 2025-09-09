@@ -25,10 +25,10 @@ const char* mqttPassword = "";                       // Contraseña MQTT (vacío
 // ID del sensor registrado en la base de datos
 // IMPORTANTE: Este ID debe existir en la base de datos del sistema
 // Para múltiples sensores, solo cambiar este valor: 1, 2, 3, 4...
-const int sensorId = 1;
+const int sensorId = 6;
 
 // Configuración de tiempos
-const unsigned long sampleInterval = 10000;     // Intervalo entre muestras en milisegundos (10 segundos)
+const unsigned long sampleInterval = 5000;      // Intervalo entre muestras en milisegundos (5 segundos)
 const unsigned long connectionTimeout = 15000;  // Timeout para intentar conexión WiFi (15 segundos)
 
 #endif 

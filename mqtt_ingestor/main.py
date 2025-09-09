@@ -51,7 +51,7 @@ class PostgresClient:
 			database=PG_DB,
 			user=PG_USER,
 			password=PG_PASSWORD,
-			timeout=10,
+			connect_timeout=10,
 		)
 		self.conn.autocommit = True
 		logger.info("Conexión a PostgreSQL establecida")
