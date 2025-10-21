@@ -7,8 +7,8 @@
 #define CREDENTIALS_H
 
 // Configuración WiFi
-const char* ssid = "A55";                       // SSID WiFi (Tigo Colombia)
-const char* password = "mukava123";             // Contraseña WiFi
+const char* ssid = "AltoRN10Pro";                       // SSID WiFi (Tigo Colombia)
+const char* password = "1234567890";             // Contraseña WiFi
 
 // NUEVO: Configuración MQTT HiveMQ (reemplaza serverBaseUrl HTTP)
 const char* mqttBrokerHost = "broker.hivemq.com";    // Broker HiveMQ público
